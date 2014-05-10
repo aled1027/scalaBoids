@@ -92,6 +92,7 @@ class BoidTree(q:Quad2d) {
             }
         }
     }
+    count = count + 1;
   }
 
   // within
@@ -99,8 +100,41 @@ class BoidTree(q:Quad2d) {
   // Find all boids within this subtree that are 
   // within the given distance to this one boid.
   //
-  def within(distance:Double,other:Boid):List[Boid] = {
-    
+  def within(distance:Double, other:Boid):List[Boid] = {
+    var retArr:List[Boid] = List();
+
+    if (bounds.isCoveredByDisk(other.position,distance)) {
+        if (count == 0) {
+            return retArr;
+        } else if (count == 1) {
+            return (other :: retArr);
+        } else {
+            for (c <- children) {
+                retArr = retArr ::: c.within(distance,other);
+            }
+            return retArr;
+        }
+    } else { 
+        if (count == 0) { 
+            return retArr;
+
+        } else if (count == 1) {
+            if (bounds.contains(other.position)) {
+                return other :: retArr;
+            } else {
+                return retArr;
+            }
+            return retArr;
+        } else {
+            for (c <- children) {
+                if (c.bounds.intersectsDisk(other.position, distance)) {
+                    retArr = retArr ::: c.within(distance, other);
+                }
+            }
+            return retArr;
+        }
+    }
+
     // See Quad2d.coversDisk.  That method will help
     // you quickly check whether any boids in this
     // subtree will be within range.
@@ -114,9 +148,5 @@ class BoidTree(q:Quad2d) {
     // you'll want to check the children, recursively,
     // and merge all the lists with the list append
     // operation :::
-    //
-
-    // ...bogus return value, for now...
-    return List[Boid]();
   }
 }
